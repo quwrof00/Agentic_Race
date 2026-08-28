@@ -11,6 +11,7 @@ import { Suspense, useState, useEffect, useRef } from "react";
 import LivePreviewRenderer from "../../components/LivePreviewRenderer";
 import SystemArchitectureVisualizer from "../../components/SystemArchitectureVisualizer";
 import PlanDAGVisualizer from "../../components/PlanDAGVisualizer";
+import { playStartSound, playTypingSound, playJudgeImpact } from "../../utils/audio";
 
 function MetricsPanel({ agentName, agentState, setAccuracy, isWinner, judgeStatus }: { agentName: 'baseline' | 'structured', agentState: any, setAccuracy: any, isWinner?: boolean, judgeStatus?: string }) {
     if (agentState.status !== 'DONE' || !agentState.startTime || !agentState.endTime) return null;
@@ -86,6 +87,9 @@ function RaceContent() {
     const [isPromptExpanded, setIsPromptExpanded] = useState(false);
     const [copiedBaseline, setCopiedBaseline] = useState(false);
     const [copiedStructured, setCopiedStructured] = useState(false);
+    const [showVsScreen, setShowVsScreen] = useState(true);
+    const [judgeFlashed, setJudgeFlashed] = useState(false);
+    const [flashActive, setFlashActive] = useState(false);
 
     const handleCopy = (text: string, agent: 'baseline' | 'structured') => {
         if (!navigator.clipboard) return;
@@ -121,8 +125,30 @@ function RaceContent() {
         };
     }, [baseline.status, structured.status]);
 
+    // Throttle typing sounds
+    const lastTypeSound = useRef(0);
     useEffect(() => {
-        if (judge.status === 'DONE' && endRef.current) {
+        const now = Date.now();
+        if (now - lastTypeSound.current > 50) {
+            if (baseline.status === 'PROCESSING' || structured.status === 'PROCESSING') {
+                playTypingSound();
+                lastTypeSound.current = now;
+            }
+        }
+    }, [baseline.response, structured.response]);
+
+    useEffect(() => {
+        playStartSound();
+        const t = setTimeout(() => setShowVsScreen(false), 2000);
+        return () => clearTimeout(t);
+    }, []);
+
+    useEffect(() => {
+        if (judge.status === 'DONE' && endRef.current && !judgeFlashed) {
+            playJudgeImpact();
+            setJudgeFlashed(true);
+            setFlashActive(true);
+            setTimeout(() => setFlashActive(false), 800);
             setTimeout(() => {
                 endRef.current?.scrollIntoView({ behavior: 'smooth' });
             }, 500);
@@ -146,7 +172,24 @@ function RaceContent() {
     const isStructuredWinner = bothDone && structuredCE > baselineCE;
 
     return (
-        <div className="min-h-screen flex flex-col p-4 relative font-[family-name:var(--font-press-start-2p)] overflow-hidden">
+        <div className={`min-h-screen flex flex-col p-4 relative font-[family-name:var(--font-press-start-2p)] overflow-hidden ${judgeFlashed ? 'animate-shake' : ''}`}>
+            
+            {showVsScreen && (
+                <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center overflow-hidden pointer-events-none">
+                    <div className="absolute inset-0 flex">
+                        <div className="w-1/2 bg-blue-900 animate-vs-left border-r-8 border-black flex items-center justify-center">
+                            <h1 className="text-4xl text-blue-300 drop-shadow-[0_0_15px_rgba(0,0,0,1)]">BASELINE</h1>
+                        </div>
+                        <div className="w-1/2 bg-yellow-600 animate-vs-right border-l-8 border-black flex items-center justify-center">
+                            <h1 className="text-4xl text-yellow-300 drop-shadow-[0_0_15px_rgba(0,0,0,1)]">STRUCTURED</h1>
+                        </div>
+                    </div>
+                    <div className="absolute top-20 text-7xl text-red-500 font-bold animate-vs-fight filter drop-shadow-[0_5px_0_rgba(255,255,255,1)] tracking-widest">
+                        FIGHT!
+                    </div>
+                </div>
+            )}
+            {flashActive && <div className="fixed inset-0 bg-white z-[90] pointer-events-none animate-flash"></div>}
 
             {/* Header */}
             <header className="w-full flex justify-between items-center mb-6 z-10 gap-2">
