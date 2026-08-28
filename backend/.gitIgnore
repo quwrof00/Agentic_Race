@@ -1,0 +1,91 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# =========================
+# Virtual Environments
+# =========================
+venv/
+env/
+ENV/
+.venv/
+
+# =========================
+# Environment Variables
+# =========================
+.env
+.env.*
+*.env
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+uvicorn.log
+
+# =========================
+# Database
+# =========================
+*.sqlite3
+*.db
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Testing / Coverage
+# =========================
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Docker
+# =========================
+docker-compose.override.yml
+
+# =========================
+# Node (if frontend inside backend repo)
+# =========================
+node_modules/
+.next/
+dist/

@@ -1,0 +1,196 @@
+@import "tailwindcss";
+
+:root {
+  /* Dan The Man Palette */
+  --dtm-bg-blue: #2c3e50;
+  --dtm-bg-pattern: #34495e;
+  --dtm-panel-bg: #ecf0f1;
+  --dtm-panel-border: #7f8c8d;
+  --dtm-button-orange: #f39c12;
+  --dtm-button-orange-shadow: #e67e22;
+  --dtm-button-red: #e74c3c;
+  --dtm-button-red-shadow: #c0392b;
+  --dtm-button-green: #2ecc71;
+  --dtm-button-green-shadow: #27ae60;
+  --dtm-text-main: #ffffff;
+  --dtm-text-shadow: #000000;
+
+  --font-press-start: var(--font-press-start-2p), monospace;
+}
+
+@theme inline {
+  --color-dtm-bg-blue: var(--dtm-bg-blue);
+  --color-dtm-bg-pattern: var(--dtm-bg-pattern);
+  --color-dtm-panel-bg: var(--dtm-panel-bg);
+  --color-dtm-panel-border: var(--dtm-panel-border);
+  --color-dtm-button-orange: var(--dtm-button-orange);
+  --color-dtm-button-orange-shadow: var(--dtm-button-orange-shadow);
+  --color-dtm-button-red: var(--dtm-button-red);
+  --color-dtm-button-red-shadow: var(--dtm-button-red-shadow);
+  --color-dtm-button-green: var(--dtm-button-green);
+  --color-dtm-button-green-shadow: var(--dtm-button-green-shadow);
+  --font-pixel: var(--font-press-start);
+
+  /* Custom xs breakpoint */
+  --breakpoint-xs: 400px;
+}
+
+body {
+  background-color: var(--dtm-bg-blue);
+  background-image: radial-gradient(var(--dtm-bg-pattern) 15%, transparent 16%),
+    radial-gradient(var(--dtm-bg-pattern) 15%, transparent 16%);
+  background-size: 60px 60px;
+  background-position: 0 0, 30px 30px;
+  color: var(--dtm-text-main);
+  font-family: var(--font-pixel);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+.pixel-border {
+  box-shadow:
+    -4px 0 0 0 #000,
+    4px 0 0 0 #000,
+    0 -4px 0 0 #000,
+    0 4px 0 0 #000;
+  margin: 4px;
+}
+
+.pixel-border-sm {
+  box-shadow:
+    -2px 0 0 0 #000,
+    2px 0 0 0 #000,
+    0 -2px 0 0 #000,
+    0 2px 0 0 #000;
+  margin: 2px;
+}
+
+.pixel-text-shadow {
+  text-shadow: 2px 2px 0 #000;
+}
+
+.pixel-btn {
+  position: relative;
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: var(--dtm-button-orange);
+  color: #fff;
+  font-family: var(--font-pixel);
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  box-shadow: inset -4px -4px 0px 0px rgba(0, 0, 0, 0.2);
+  transition: transform 0.1s;
+}
+
+.pixel-btn:active {
+  transform: translateY(2px);
+  box-shadow: inset -2px -2px 0px 0px rgba(0, 0, 0, 0.2);
+}
+
+.pixel-panel {
+  background-color: #bdc3c7;
+  /* Light Grey Base */
+  border: 4px solid #000;
+  box-shadow: 8px 8px 0px 0px rgba(0, 0, 0, 0.5);
+  position: relative;
+}
+
+.pixel-panel-header {
+  background-color: #34495e;
+  color: #fff;
+  padding: 8px;
+  border-bottom: 4px solid #000;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+/* Markdown Terminal Styles */
+.markdown-terminal {
+  font-family: inherit;
+  line-height: 1.6;
+}
+
+.markdown-terminal h1,
+.markdown-terminal h2,
+.markdown-terminal h3 {
+  font-size: 1.1em;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  text-decoration: underline;
+  text-transform: uppercase;
+}
+
+.markdown-terminal p {
+  margin-bottom: 1rem;
+}
+
+.markdown-terminal ul,
+.markdown-terminal ol {
+  margin-left: 2rem;
+  margin-bottom: 1rem;
+  list-style-type: square;
+}
+
+.markdown-terminal li {
+  margin-bottom: 0.5rem;
+}
+
+.markdown-terminal pre {
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid currentColor;
+  padding: 1rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.5);
+}
+
+.markdown-terminal code {
+  font-family: inherit;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0 0.4rem;
+}
+
+.markdown-terminal blockquote {
+  border-left: 4px solid currentColor;
+  padding-left: 1rem;
+  margin-left: 0.5rem;
+  opacity: 0.7;
+}
+
+.markdown-terminal table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.markdown-terminal th,
+.markdown-terminal td {
+  border: 2px solid currentColor;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.markdown-terminal strong {
+  text-decoration: underline;
+}
+
+/* Custom Pixel Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #000;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #555;
+  border: 1px solid #000;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
