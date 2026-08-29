@@ -278,7 +278,7 @@ Provide a natural, comprehensive answer. Do NOT use raw HTML tags (like <br>) in
     final_answer = ""
     async for token in stream_completion(
         [
-            {"role": "system", "content": f"Natural language only. The current date is {current_date}. Pay strict attention to this date when evaluating search context: if an event's date is before the current date, it has already happened. Do not claim an event hasn't happened yet if its date has passed."},
+            {"role": "system", "content": f"Natural language only. The current date is {current_date}. You DO have access to live, real-time information via the provided Search Context. Do NOT refuse to answer due to a lack of real-time data or internet access. Rely entirely on the Search Context for real-time facts (like weather, news, etc). Pay strict attention to the current date when evaluating search context."},
             {"role": "user", "content": execution_prompt}
         ],
         model=BASELINE_MODEL,
@@ -413,7 +413,7 @@ Provide an improved answer.
     improved_answer = ""
     async for token in stream_completion(
         [
-            {"role": "system", "content": "Natural language only."},
+            {"role": "system", "content": "Natural language only. You DO have access to live, real-time information via the provided Search Context. Do NOT refuse to answer due to a lack of real-time data or internet access. Rely entirely on the provided Context."},
             {"role": "user", "content": refinement_prompt}
         ],
         model=BASELINE_MODEL,
