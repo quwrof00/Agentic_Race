@@ -1,4 +1,5 @@
 from utils.llm import stream_completion
+from config import BASELINE_MODEL
 
 async def run_baseline(prompt: str, stream_callback):
     """
