@@ -150,9 +150,15 @@ User Request:
                     url = r.get("url") or ""
                     new_context += f"- {title}\n  {content}\n  {url}\n\n"
                     thought_sources.append(f"[{title}]({url})")
+                    
+            print(f"[Structured Agent Log] Tavily returned {len(new_context)} characters of context.")
 
             # Append instead of overwrite
             combined_context += new_context
+            
+            # Truncate context to max 4000 chars to avoid 413 Payload Too Large on smaller models
+            if len(combined_context) > 4000:
+                combined_context = combined_context[-4000:]
             
             await callback({
                 "agent": "structured",
