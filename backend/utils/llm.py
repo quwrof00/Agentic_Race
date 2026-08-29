@@ -1,13 +1,13 @@
 from openai import AsyncOpenAI
 import os
-from config import GROQ_API_KEY, GROQ_BASE_URL, MODEL_NAME
+from config import GROQ_API_KEY, GROQ_BASE_URL, BASELINE_MODEL
 
 client = AsyncOpenAI(
     api_key=GROQ_API_KEY,
     base_url=GROQ_BASE_URL,
 )
 
-async def stream_completion(messages, model=MODEL_NAME, usage_counter=None, max_retries=3, **kwargs):
+async def stream_completion(messages, model=BASELINE_MODEL, usage_counter=None, max_retries=3, **kwargs):
     import asyncio
     
     if usage_counter is not None:

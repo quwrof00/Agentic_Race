@@ -1,4 +1,5 @@
 from utils.llm import stream_completion
+from config import JUDGE_MODEL
 import json
 
 async def run_judge(prompt: str, baseline_response: str, structured_response: str, search_context: str, stream_callback):
@@ -67,7 +68,7 @@ Return ONLY valid JSON in this exact format:
     ]
 
     full_response = ""
-    async for token in stream_completion(messages, model="qwen/qwen3.8-27b", temperature=0.1, usage_counter=usage_counter, max_tokens=300):
+    async for token in stream_completion(messages, model=JUDGE_MODEL, temperature=0.1, usage_counter=usage_counter, max_tokens=300):
         full_response += token
         # We don't stream the judge's tokens to the UI, just the final result, 
         # but we could log it if needed.

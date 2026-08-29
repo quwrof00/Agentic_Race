@@ -7,8 +7,8 @@ from tavily import TavilyClient
 # LangGraph Imports
 from langgraph.graph import StateGraph, START, END
 
-# Your Existing LLM Utility
 from utils.llm import stream_completion
+from config import STRUCTURED_MODEL
 
 # Load Env
 load_dotenv()
@@ -106,6 +106,7 @@ User Request:
             {"role": "system", "content": "You are a specialized JSON-only output bot. The current date is " + current_date},
             {"role": "user", "content": search_check_prompt}
         ],
+        model=STRUCTURED_MODEL,
         temperature=0.0,
         usage_counter=usage_counter
     ):
@@ -210,6 +211,7 @@ Rules:
             {"role": "system", "content": "JSON only."},
             {"role": "user", "content": plan_prompt}
         ],
+        model=STRUCTURED_MODEL,
         temperature=0.2,
         usage_counter=usage_counter
     ):
@@ -273,6 +275,7 @@ Provide a natural, comprehensive answer. Do NOT use raw HTML tags (like <br>) in
             {"role": "system", "content": f"Natural language only. The current date is {current_date}. Pay strict attention to this date when evaluating search context: if an event's date is before the current date, it has already happened. Do not claim an event hasn't happened yet if its date has passed."},
             {"role": "user", "content": execution_prompt}
         ],
+        model=STRUCTURED_MODEL,
         temperature=0.2,
         usage_counter=usage_counter,
         max_tokens=800
@@ -345,6 +348,7 @@ OR (Use 'search' if the answer is factually incorrect, hallucinated, or missing 
             {"role": "system", "content": "JSON only."},
             {"role": "user", "content": reflection_prompt}
         ],
+        model=STRUCTURED_MODEL,
         temperature=0.2,
         usage_counter=usage_counter
     ):
@@ -406,6 +410,7 @@ Provide an improved answer.
             {"role": "system", "content": "Natural language only."},
             {"role": "user", "content": refinement_prompt}
         ],
+        model=STRUCTURED_MODEL,
         temperature=0.2,
         usage_counter=usage_counter
     ):
