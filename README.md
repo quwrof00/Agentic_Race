@@ -13,7 +13,7 @@ Under the hood, Agentic Race is powered by a high-performance stack designed for
 ### Tech Stack
 * **FastAPI**: Backend server running asynchronous event loops.
 * **LangGraph**: State machine orchestrating the complex structured agent.
-* **Groq (`mixtral-8x7b-32768`)**: Lightning-fast LLM inference.
+* **Groq (`gpt-oss-20b` & `qwen`)**: Lightning-fast LLM inference utilizing a distributed model architecture.
 * **Tavily**: Live web search integration.
 * **Next.js 16 / React 19**: Responsive, fully dynamic frontend.
 * **Zustand**: Global state management for live race metrics.
