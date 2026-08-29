@@ -107,7 +107,7 @@ User Request:
     search_needed_text = ""
     async for token in stream_completion(
         [
-            {"role": "system", "content": "You are a specialized JSON-only output bot. The current date is " + current_date},
+            {"role": "system", "content": "You are a pure JSON generator. Do NOT use, call, or output any tool calls or function calls. Output ONLY plain text JSON."},
             {"role": "user", "content": search_check_prompt}
         ],
         model=STRUCTURED_MODEL,
@@ -218,7 +218,7 @@ Rules:
     plan_text = ""
     async for token in stream_completion(
         [
-            {"role": "system", "content": "JSON only."},
+            {"role": "system", "content": "You are a pure JSON generator. Do NOT use, call, or output any tool calls or function calls. Output ONLY plain text JSON."},
             {"role": "user", "content": plan_prompt}
         ],
         model=STRUCTURED_MODEL,
@@ -355,7 +355,7 @@ OR (Use 'search' if the answer is factually incorrect, hallucinated, or missing 
     reflection_text = ""
     async for token in stream_completion(
         [
-            {"role": "system", "content": "JSON only."},
+            {"role": "system", "content": "You are a pure JSON generator. Do NOT use, call, or output any tool calls or function calls. Output ONLY plain text JSON."},
             {"role": "user", "content": reflection_prompt}
         ],
         model=STRUCTURED_MODEL,

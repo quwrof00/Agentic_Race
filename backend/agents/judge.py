@@ -63,7 +63,7 @@ Return ONLY valid JSON in this exact format:
 """
 
     messages = [
-        {"role": "system", "content": "You are a specialized JSON-only output bot. You must ONLY output a valid JSON object. Do not include any conversational text, explanations, or thoughts outside of the JSON object."},
+        {"role": "system", "content": "You are a specialized JSON-only output bot. You must ONLY output a valid JSON object. Do NOT use, call, or output any tool calls or function calls. Do not include any conversational text or explanations outside of the JSON."},
         {"role": "user", "content": judge_prompt},
     ]
 
