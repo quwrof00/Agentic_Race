@@ -12,6 +12,17 @@ async def run_judge(prompt: str, baseline_response: str, structured_response: st
         "data": "Evaluating responses...",
     })
 
+    # Aggressive truncation to prevent context window blowouts on 20b models
+    # This prevents the LLM from silently failing and returning an empty string.
+    max_chars = 3000
+    if len(baseline_response) > max_chars:
+        baseline_response = baseline_response[:max_chars] + "\n...[TRUNCATED]"
+    if len(structured_response) > max_chars:
+        structured_response = structured_response[:max_chars] + "\n...[TRUNCATED]"
+    if len(search_context) > max_chars:
+        search_context = search_context[:max_chars] + "\n...[TRUNCATED]"
+
+
     usage_counter = {"total_tokens": 0}
 
     judge_prompt = f"""
