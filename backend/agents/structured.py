@@ -8,7 +8,7 @@ from tavily import TavilyClient
 from langgraph.graph import StateGraph, START, END
 
 from utils.llm import stream_completion
-from config import STRUCTURED_MODEL
+from config import STRUCTURED_MODEL, BASELINE_MODEL
 
 # Load Env
 load_dotenv()
@@ -281,7 +281,7 @@ Provide a natural, comprehensive answer. Do NOT use raw HTML tags (like <br>) in
             {"role": "system", "content": f"Natural language only. The current date is {current_date}. Pay strict attention to this date when evaluating search context: if an event's date is before the current date, it has already happened. Do not claim an event hasn't happened yet if its date has passed."},
             {"role": "user", "content": execution_prompt}
         ],
-        model=STRUCTURED_MODEL,
+        model=BASELINE_MODEL,
         temperature=0.2,
         usage_counter=usage_counter,
         max_tokens=800
@@ -416,7 +416,7 @@ Provide an improved answer.
             {"role": "system", "content": "Natural language only."},
             {"role": "user", "content": refinement_prompt}
         ],
-        model=STRUCTURED_MODEL,
+        model=BASELINE_MODEL,
         temperature=0.2,
         usage_counter=usage_counter
     ):
