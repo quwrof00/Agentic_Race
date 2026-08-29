@@ -67,7 +67,7 @@ Return ONLY valid JSON in this exact format:
     ]
 
     full_response = ""
-    async for token in stream_completion(messages, temperature=0.1, usage_counter=usage_counter, max_tokens=300):
+    async for token in stream_completion(messages, model="qwen/qwen3.8-27b", temperature=0.1, usage_counter=usage_counter, max_tokens=300):
         full_response += token
         # We don't stream the judge's tokens to the UI, just the final result, 
         # but we could log it if needed.
