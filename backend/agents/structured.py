@@ -288,7 +288,7 @@ Provide a natural, comprehensive answer. Do NOT use raw HTML tags (like <br>) in
         model=BASELINE_MODEL,
         temperature=0.2,
         usage_counter=usage_counter,
-        max_tokens=800
+        max_tokens=1500
     ):
         final_answer += token
         await callback({
@@ -422,7 +422,8 @@ Provide an improved answer.
         ],
         model=BASELINE_MODEL,
         temperature=0.2,
-        usage_counter=usage_counter
+        usage_counter=usage_counter,
+        max_tokens=1500
     ):
         improved_answer += token
         await callback({

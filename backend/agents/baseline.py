@@ -21,7 +21,7 @@ async def run_baseline(prompt: str, stream_callback):
     usage_counter = {"total_tokens": 0}
     await stream_callback({"agent": "baseline", "type": "status", "data": "Generating response..."})
     
-    async for token in stream_completion(messages, usage_counter=usage_counter, max_tokens=800):
+    async for token in stream_completion(messages, model=BASELINE_MODEL, usage_counter=usage_counter, max_tokens=1500):
         full_response += token
         await stream_callback({
             "agent": "baseline",
