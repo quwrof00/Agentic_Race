@@ -39,6 +39,10 @@ class AgentState(TypedDict):
 def parse_json_safely(text: str, fallback_bool_key: str = None):
     clean_json = text.strip()
     try:
+        # Strip <think> blocks before parsing
+        if "<think>" in clean_json and "</think>" in clean_json:
+            clean_json = clean_json.split("</think>")[1].strip()
+            
         if "```json" in clean_json:
             clean_json = clean_json.split("```json")[1].split("```")[0].strip()
         elif "```" in clean_json:

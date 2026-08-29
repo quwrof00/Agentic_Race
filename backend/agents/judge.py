@@ -68,7 +68,7 @@ Return ONLY valid JSON in this exact format:
     ]
 
     full_response = ""
-    async for token in stream_completion(messages, model=JUDGE_MODEL, temperature=0.1, usage_counter=usage_counter, max_tokens=300):
+    async for token in stream_completion(messages, model=JUDGE_MODEL, temperature=0.1, usage_counter=usage_counter, max_tokens=800):
         full_response += token
         # We don't stream the judge's tokens to the UI, just the final result, 
         # but we could log it if needed.
@@ -85,6 +85,11 @@ Return ONLY valid JSON in this exact format:
     full_response = full_response.strip()
     try:
         clean_json = full_response
+        
+        # Strip <think> blocks before parsing
+        if "<think>" in clean_json and "</think>" in clean_json:
+            clean_json = clean_json.split("</think>")[1].strip()
+            
         if "```json" in clean_json:
             clean_json = clean_json.split("```json")[1].split("```")[0].strip()
         elif "```" in clean_json:
