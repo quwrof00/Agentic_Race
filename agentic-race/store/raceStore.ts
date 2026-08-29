@@ -11,6 +11,7 @@ interface AgentState {
     accuracy: number;
     plan: string[];
     apiCalls: number;
+    thoughts: { title: string; content: string }[];
 }
 
 interface RaceState {
@@ -45,6 +46,7 @@ const initialAgentState: AgentState = {
     accuracy: 100,
     plan: [],
     apiCalls: 0,
+    thoughts: [],
 };
 
 const useRaceStore = create<RaceState>((set) => ({
@@ -128,6 +130,9 @@ const useRaceStore = create<RaceState>((set) => ({
                     break;
                 case 'plan':
                     newAgentState.plan = data;
+                    break;
+                case 'thought':
+                    newAgentState.thoughts = [...newAgentState.thoughts, data];
                     break;
             }
 

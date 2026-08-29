@@ -10,8 +10,10 @@ async def run_baseline(prompt: str, stream_callback):
         "data": "Thinking...",
     })
 
+    from datetime import datetime
+    current_date = datetime.now().strftime("%Y-%m-%d")
     messages = [
-        {"role": "system", "content": "You are a helpful AI assistant. Answer the user's query directly and concisely."},
+        {"role": "system", "content": f"You are a helpful AI assistant. Answer the user's query directly and concisely. The current date is {current_date}. Pay strict attention to this date: if an event occurred before this date, it has already happened. Do NOT use raw HTML tags (like <br>) in your response; use standard Markdown formatting instead."},
         {"role": "user", "content": prompt},
     ]
 
@@ -19,7 +21,7 @@ async def run_baseline(prompt: str, stream_callback):
     usage_counter = {"total_tokens": 0}
     await stream_callback({"agent": "baseline", "type": "status", "data": "Generating response..."})
     
-    async for token in stream_completion(messages, usage_counter=usage_counter):
+    async for token in stream_completion(messages, usage_counter=usage_counter, max_tokens=800):
         full_response += token
         await stream_callback({
             "agent": "baseline",

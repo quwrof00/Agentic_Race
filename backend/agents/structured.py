@@ -13,7 +13,7 @@ from utils.llm import stream_completion
 # Load Env
 load_dotenv()
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
-MAX_REFLECTION_RETRIES = 1
+MAX_REFLECTION_RETRIES = 3
 
 
 # -----------------------------------------------------------------------------
@@ -74,6 +74,9 @@ async def check_search_need(state: AgentState):
         "data": "Checking if web search is needed..."
     })
 
+    from datetime import datetime
+    current_date = datetime.now().strftime("%Y-%m-%d")
+
     # Use override if reflection requested a specific query
     query = state.get("search_query_override") or state["prompt"]
 
@@ -82,7 +85,8 @@ Does the following user request require doing a real-time web search or gatherin
 Return ONLY valid JSON in this format:
 
 {{
-  "search_needed": true
+  "search_needed": true,
+  "search_query": "<an optimal, highly specific search query based on the user request and current date>"
 }}
 
 or
@@ -91,6 +95,7 @@ or
   "search_needed": false
 }}
 
+Current Date: {current_date}
 User Request:
 "{query}"
 """
@@ -98,7 +103,7 @@ User Request:
     search_needed_text = ""
     async for token in stream_completion(
         [
-            {"role": "system", "content": "You are a specialized JSON-only output bot."},
+            {"role": "system", "content": "You are a specialized JSON-only output bot. The current date is " + current_date},
             {"role": "user", "content": search_check_prompt}
         ],
         temperature=0.0,
@@ -108,6 +113,17 @@ User Request:
 
     search_json = parse_json_safely(search_needed_text, fallback_bool_key="search_needed")
     is_search_needed = search_json.get("search_needed", False)
+    # If the LLM provides an optimized search query, use it; otherwise fallback to the user prompt.
+    optimized_query = search_json.get("search_query", query) if is_search_needed else query
+
+    await callback({
+        "agent": "structured",
+        "type": "thought",
+        "data": {
+            "title": "Evaluated Search Need",
+            "content": f"Current Date: {current_date}\nDecision: {'Search Required' if is_search_needed else 'No Search Needed'}\nQuery Formulated: {optimized_query}"
+        }
+    })
 
     combined_context = state.get("search_context", "")
 
@@ -115,24 +131,36 @@ User Request:
         await callback({
             "agent": "structured",
             "type": "status",
-            "data": f"Searching web for: {query}"
+            "data": f"Searching web for: {optimized_query}"
         })
 
         try:
             tavily_client = TavilyClient(api_key=TAVILY_API_KEY)
-            search_res = tavily_client.search(query=query, search_depth="basic")
+            search_res = tavily_client.search(query=optimized_query, search_depth="basic")
             results = search_res.get("results", [])
 
             new_context = "\n--- Additional Web Search Context ---\n"
+            thought_sources = []
             for r in results[:5]:
                 if isinstance(r, dict):
                     title = r.get("title") or "No Title"
                     content = r.get("content") or ""
+                    if len(content) > 300: content = content[:300] + "..."
                     url = r.get("url") or ""
                     new_context += f"- {title}\n  {content}\n  {url}\n\n"
+                    thought_sources.append(f"[{title}]({url})")
 
             # Append instead of overwrite
             combined_context += new_context
+            
+            await callback({
+                "agent": "structured",
+                "type": "thought",
+                "data": {
+                    "title": "Gathered Web Sources",
+                    "content": "Found relevant information from:\n- " + "\n- ".join(thought_sources) if thought_sources else "No useful sources found."
+                }
+            })
             
             # Increment API calls for Tavily search
             usage_counter.setdefault('api_calls', 0)
@@ -195,6 +223,15 @@ Rules:
 
     await callback({
         "agent": "structured",
+        "type": "thought",
+        "data": {
+            "title": "Generated Plan",
+            "content": "\n".join([f"{i+1}. {step}" for i, step in enumerate(steps)])
+        }
+    })
+
+    await callback({
+        "agent": "structured",
         "type": "plan",
         "data": steps
     })
@@ -224,17 +261,21 @@ User Request:
 Plan:
 {json.dumps(state['plan'], indent=2)}
 
-Provide a natural, comprehensive answer.
+Provide a natural, comprehensive answer. Do NOT use raw HTML tags (like <br>) in your response; use standard Markdown formatting instead.
 """
+
+    from datetime import datetime
+    current_date = datetime.now().strftime("%Y-%m-%d")
 
     final_answer = ""
     async for token in stream_completion(
         [
-            {"role": "system", "content": "Natural language only."},
+            {"role": "system", "content": f"Natural language only. The current date is {current_date}. Pay strict attention to this date when evaluating search context: if an event's date is before the current date, it has already happened. Do not claim an event hasn't happened yet if its date has passed."},
             {"role": "user", "content": execution_prompt}
         ],
         temperature=0.2,
-        usage_counter=usage_counter
+        usage_counter=usage_counter,
+        max_tokens=800
     ):
         final_answer += token
         await callback({
@@ -260,9 +301,17 @@ async def reflect(state: AgentState):
         "data": "Reflecting on Output..."
     })
 
+    from datetime import datetime
+    current_date = datetime.now().strftime("%Y-%m-%d")
+
     reflection_prompt = f"""
+Current Date: {current_date}
+
 User Request:
 {state['prompt']}
+
+Search Context (Use this to verify facts! Do NOT rely on your internal training data for recent events):
+{state['search_context']}
 
 Answer:
 {state['final_answer']}
@@ -274,14 +323,14 @@ Return ONLY valid JSON:
   "reason": ""
 }}
 
-OR
+OR (Use 'refine' ONLY if the answer has all the correct facts but needs formatting/logic fixes)
 
 {{
   "action": "refine",
   "reason": "<what is wrong>"
 }}
 
-OR
+OR (Use 'search' if the answer is factually incorrect, hallucinated, or missing critical information that requires a new web search)
 
 {{
   "action": "search",
@@ -309,6 +358,15 @@ OR
     # Global retry cap
     if iterations >= MAX_REFLECTION_RETRIES:
         action = "complete"
+        
+    await callback({
+        "agent": "structured",
+        "type": "thought",
+        "data": {
+            "title": f"Reflection (Iteration {iterations + 1})",
+            "content": f"Action Decided: {action.upper()}\nReasoning: {reason}" if reason else f"Action Decided: {action.upper()}"
+        }
+    })
 
     return {
         "is_satisfied": action == "complete",

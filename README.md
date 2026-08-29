@@ -2,136 +2,64 @@
 
 A real-time head-to-head battle arena for AI agents. You write a prompt, two agents race to answer it simultaneously, and a third AI judges who won.
 
-Built for fun to visually compare a raw LLM call vs. a structured agentic pipeline — side by side, streaming live.
+Built to visually compare a raw LLM call vs. a structured agentic pipeline - side by side, streaming live. By measuring **Accuracy**, **Latency**, and **Token Cost**, this project answers the ultimate question: *When is a complex agent actually worth the overhead?*
 
 ---
 
-## What It Does
+## Execution & Architecture
 
-Two agents receive the same prompt at the same time and race to produce the best answer:
+Under the hood, Agentic Race is powered by a high-performance stack designed for concurrent execution and live streaming:
 
-| Agent | Strategy |
-|---|---|
-| **Baseline** | Calls the LLM directly. No planning. No searching. Just speed. |
-| **Structured** | Checks if web search is needed → builds a step-by-step plan → executes it → reflects on the output → refines or re-searches if needed. |
+### Tech Stack
+* **FastAPI**: Backend server running asynchronous event loops.
+* **LangGraph**: State machine orchestrating the complex structured agent.
+* **Groq (`mixtral-8x7b-32768`)**: Lightning-fast LLM inference.
+* **Tavily**: Live web search integration.
+* **Next.js 16 / React 19**: Responsive, fully dynamic frontend.
+* **Zustand**: Global state management for live race metrics.
 
-Once both agents finish, a **Judge Agent** evaluates both responses and scores them across three dimensions:
+### How It Works
+Two agents receive the same prompt simultaneously:
 
-- **Accuracy** — Is the information factually correct?
-- **Completeness** — Did it fully answer the prompt?
-- **Helpfulness** — Is it actually useful?
-
-All of this streams live to the UI via SSE (Server-Sent Events), so you watch both agents type their answers in real time.
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────┐
-│                   Next.js Frontend               │
-│                                                  │
-│  ┌──────────────┐          ┌──────────────────┐  │
-│  │   Baseline   │          │   Structured     │  │
-│  │   Panel      │          │   Panel          │  │
-│  │              │          │  + DAG Visualizer│  │
-│  └──────────────┘          └──────────────────┘  │
-│              ↑ SSE stream                        │
-└──────────────┼──────────────────────────────────┘
-               │
-┌──────────────┼──────────────────────────────────┐
-│              │    FastAPI Backend                 │
-│              │                                   │
-│  ┌───────────┴──────────────────────────────┐    │
-│  │         /race  (SSE endpoint)            │    │
-│  │    asyncio.gather → runs both agents     │    │
-│  │    simultaneously, pushes events to queue│    │
-│  └──┬──────────────────────────────────┬───┘    │
-│     │                                  │         │
-│  ┌──▼──────────┐             ┌─────────▼──────┐  │
-│  │  Baseline   │             │   Structured   │  │
-│  │  Agent      │             │   Agent        │  │
-│  │             │             │  (LangGraph)   │  │
-│  │  Direct LLM │             │                │  │
-│  │  call       │             │  check_search  │  │
-│  └─────────────┘             │  → gen_plan    │  │
-│                              │  → execute     │  │
-│                              │  → reflect     │  │
-│                              │  → refine/loop │  │
-│                              └────────────────┘  │
-│                                    ↓              │
-│                          ┌─────────────────────┐  │
-│                          │   Judge Agent       │  │
-│                          │   scores both       │  │
-│                          └─────────────────────┘  │
-└─────────────────────────────────────────────────┘
-```
-
-### Structured Agent — LangGraph State Machine
-
-The structured agent is a proper agentic loop built with LangGraph:
-
-```
-START
-  └─→ check_search   (does this need web search? → Tavily if yes)
-        └─→ generate_plan   (produce 3–5 step JSON plan)
-              └─→ execute_plan   (stream answer token by token)
-                    └─→ reflect   (is output good enough?)
-                          ├─→ [satisfied] → END
-                          ├─→ [needs refine] → refine_answer → reflect
-                          └─→ [needs more search] → check_search → ...
-```
+1. **The Baseline Agent**: Calls the LLM directly. No planning, no searching. Just pure inference speed.
+2. **The Structured Agent**: Runs through a robust LangGraph pipeline:
+   - **Plan**: Evaluates if web search is needed.
+   - **Execute**: Streams a generated response.
+   - **Reflect & Refine**: Self-evaluates its own response against the original prompt, utilizing **Temporal Awareness** to check current dates against retrieved facts (e.g., verifying if an event has already occurred). It will re-search and rewrite if necessary.
+3. **The Judge AI**: Once both agents finish, a third independent AI evaluates them on **Accuracy**, **Completeness**, and **Helpfulness**, providing a full markdown-rendered reasoning report.
 
 ---
 
-## Tech Stack
+## Originality & Innovation
 
-### Backend
-| Tool | Purpose |
-|---|---|
-| **FastAPI** | API server + SSE streaming endpoint |
-| **LangGraph** | State machine for the structured agent |
-| **Groq** (`llama-3.1-8b-instant`) | LLM inference (fast + free tier) |
-| **Tavily** | Web search for the structured agent |
-| **asyncio** | Runs both agents in parallel |
+While many tools exist to test single prompts, Agentic Race provides a **live, split-screen battleground** for competing AI architectures. 
 
-### Frontend
-| Tool | Purpose |
-|---|---|
-| **Next.js 16** | App framework |
-| **React 19** | UI |
-| **Zustand** | Global race state management |
-| **React Flow (`@xyflow/react`)** | Live DAG visualizer for the structured agent's plan |
-| **react-markdown** | Renders agent responses as markdown |
-| **Tailwind CSS v4** | Styling |
+* **Live Streaming Token Metrics**: Unlike static dashboards, token counts and exact latency stopwatches update live via Server-Sent Events (SSE).
+* **"Thinking" Transparency Modal**: Click the "VIEW THINKING" button on the Structured agent to pull up a full-screen breakdown of its exact internal monologue, search queries, and self-reflection loops.
+* **Interactive Accuracy Sliders**: Users can manually override the Judge's accuracy score to dynamically re-calculate the Cost Efficiency rating.
 
 ---
 
-## Project Structure
+## Practical Value & Impact
 
-```
-agentic-race/
-├── backend/
-│   ├── agents/
-│   │   ├── baseline.py       # Direct LLM streaming agent
-│   │   ├── structured.py     # LangGraph agentic pipeline
-│   │   └── judge.py          # Scores both responses 0–100
-│   ├── utils/
-│   │   └── llm.py            # Shared async streaming wrapper (Groq via OpenAI SDK)
-│   ├── config.py             # Model config (Groq, llama-3.1-8b-instant)
-│   ├── main.py               # FastAPI app + /race SSE endpoint
-│   ├── schemas.py
-│   └── requirements.txt
-│
-└── agentic-race/             # Next.js frontend
-    ├── app/
-    │   ├── page.tsx          # Home / prompt entry page
-    │   └── race/             # Live race page
-    ├── components/
-    │   └── PlanDAGVisualizer.tsx  # React Flow graph of the structured agent's plan
-    └── store/
-        └── raceStore.ts      # Zustand store — all race state lives here
-```
+The project isn't just a race; it's an educational tool for prompt engineering and AI architecture optimization. It introduces the **Cost Efficiency Score**:
+
+`Cost Efficiency = (Accuracy² / (Latency × log₁₀(Tokens))) / 10`
+
+By dynamically calculating **Live USD Costs** based on token usage and comparing it to the stopwatch latency, developers can visualize the tradeoff between speed, cost, and accuracy:
+
+* **When to use Baseline**: Creative writing, generic coding algorithms, simple translations. *Zero latency, fractions of a cent, utilizing vast pre-trained knowledge.*
+* **When to use Structured**: Real-time stock prices, recent news events, complex logic puzzles. *Higher latency and cost, but guaranteed accuracy and fact-checking.*
+
+---
+
+## User Experience & UI
+
+The UI is built with a sleek, responsive **Cyberpunk / Retro Arcade** aesthetic designed to make AI benchmarking fun and visceral.
+
+* **Responsive Design**: Flawless edge-to-edge layouts on mobile devices, with dynamic layout shifting for the "FIGHT!" VS screens.
+* **Micro-animations**: Pulsing status indicators, glowing neon borders, shaking impact animations, and custom pixel-art styling.
+* **Markdown Support**: Agent outputs and the Judge's reasoning are fully rendered with `react-markdown` and `remark-gfm` for beautiful readability, tables, and lists.
 
 ---
 
@@ -143,8 +71,6 @@ agentic-race/
 - Node.js 18+
 - A [Groq](https://console.groq.com/) API key (free)
 - A [Tavily](https://tavily.com/) API key (free tier available)
-
----
 
 ### 1. Clone the repo
 
@@ -183,37 +109,12 @@ uvicorn main:app --reload --port 8000
 ### 3. Frontend setup
 
 ```bash
-cd agentic-race
+cd ../agentic-race
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
----
-
-## How to Use
-
-1. **Enter a prompt** on the home page — or pick one from the mission presets.
-2. Hit **START ►** — both agents initialize immediately.
-3. Watch them race in real time on the race page:
-   - The **Baseline panel** streams its answer directly.
-   - The **Structured panel** shows its status logs, a live DAG of its execution plan, and its streaming answer.
-4. Once both finish, the **Judge** scores them and reveals the winner with dimension breakdowns.
-
-### Prompt Tips
-
-> **Baseline-favored** — static knowledge questions (explain theory of relativity, summarize Romeo and Juliet, translation tasks). The structured agent's overhead doesn't pay off here.
-
-> **Structured-favored** — anything requiring real-time or recent info (current Bitcoin price, latest Oscar winner, today's trending movies). The baseline will hallucinate; the structured agent will search.
-
----
-
-## Notes
-
-- The model is `llama-3.1-8b-instant` via Groq — deliberately fast and lightweight to keep the race interesting. Swap it in `config.py` if you want to test others.
-- The structured agent caps reflection retries at 1 (`MAX_REFLECTION_RETRIES = 1`) to keep latency reasonable.
-- Token counts shown in the UI are exact (pulled from the streaming usage metadata), not estimated.
+Open [http://localhost:3000](http://localhost:3000) and enter a prompt to begin the race!
 
 ---
 
